@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Buscar Paciente{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-3">
+        <div class="col">
+            <label for="paciente-search" class="form-label">Buscar Paciente:</label>
+            <input type="text" id="paciente-search" class="form-control" placeholder="Digite o nome do paciente...">
+        </div>
+    </div>
+    <ul class="list-group" id="paciente-list">
+        {% for paciente in pacientes %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                {{ paciente.nome }} ({{ paciente.idade }} anos)
+                <a href="{% url 'realizar_consulta' paciente.id %}" class="btn btn-primary">Realizar Consulta</a>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('#paciente-search').on('input', function() {
+            let query = $(this).val();
+            $.ajax({
+                url: "{% url 'busca_paciente' %}",
+                data: {'q': query},
+                success: function(data) {
+                    $('#paciente-list').html('');
+                    data.pacientes.forEach(function(paciente) {
+                        $('#paciente-list').append(
+                            `<li class="list-group-item d-flex justify-content-between align-items-center">
+                                ${paciente.nome} (${paciente.idade} anos)
+                                <a href="/realizar_consulta/${paciente.id}" class="btn btn-primary">Realizar Consulta</a>
+                            </li>`
+                        );
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

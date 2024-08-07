@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+
+{% block title %}Realizar Consulta{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div>
+        <h3>Informações do Paciente</h3>
+        <ul class="list-group">
+            <li class="list-group-item"><strong>Nome:</strong> {{ paciente.nome }}</li>
+            <li class="list-group-item"><strong>Sexo:</strong> {{ paciente.sexo }}</li>
+            <li class="list-group-item"><strong>Idade:</strong> {{ paciente.idade }}</li>
+        </ul>
+    </div>
+    <hr>
+    <div>Tempo de Duração: <span id="duration">00:00:00</span></div>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="transcricao">Transcrição</label>
+            <textarea id="transcricao" name="transcricao" class="form-control" rows="5"></textarea>
+        </div>
+        <button type="button" id="start-record-btn" class="btn btn-success">Iniciar Gravação</button>
+        <button type="button" id="stop-record-btn" class="btn btn-danger" disabled>Parar Gravação</button>
+        <button type="submit" id="save-consultation-btn" class="btn btn-primary">Salvar Consulta</button>
+
+        <button type="button" id="show-form-btn" class="btn btn-secondary mt-3">Preencher Campos do Formulário</button>
+        <div id="additional-fields" class="mt-3" style="display: none;">
+            <div class="form-group">
+                <label for="queixa_principal">Queixa Principal</label>
+                <textarea id="queixa_principal" name="queixa_principal" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="historia_doenca_atual">História da Doença Atual</label>
+                <textarea id="historia_doenca_atual" name="historia_doenca_atual" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="historia_patologica_pregressa">História Patológica Pregressa</label>
+                <textarea id="historia_patologica_pregressa" name="historia_patologica_pregressa" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="cirurgias_realizadas">Cirurgias Realizadas</label>
+                <textarea id="cirurgias_realizadas" name="cirurgias_realizadas" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="medicamentos_atualmente">Medicamentos e suplementos em uso atualmente</label>
+                <textarea id="medicamentos_atualmente" name="medicamentos_atualmente" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="historia_fisiologica">História fisiológica</label>
+                <textarea id="historia_fisiologica" name="historia_fisiologica" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="historia_familiar">História familiar</label>
+                <textarea id="historia_familiar" name="historia_familiar" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="historia_social">História social</label>
+                <textarea id="historia_social" name="historia_social" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="hipoteses_diagnosticas">Hipóteses diagnósticas</label>
+                <textarea id="hipoteses_diagnosticas" name="hipoteses_diagnosticas" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="exame_fisico">Exame Físico</label>
+                <textarea id="exame_fisico" name="exame_fisico" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="resultado_exames">Resultado de exames</label>
+                <textarea id="resultado_exames" name="resultado_exames" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="conduta_terapeutica">Conduta terapêutica</label>
+                <textarea id="conduta_terapeutica" name="conduta_terapeutica" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="exames_solicitados">Exames solicitados</label>
+                <textarea id="exames_solicitados" name="exames_solicitados" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="medicamentos_prescritos">Medicamentos prescritos</label>
+                <textarea id="medicamentos_prescritos" name="medicamentos_prescritos" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="observacoes_adicionais">Observações adicionais</label>
+                <textarea id="observacoes_adicionais" name="observacoes_adicionais" class="form-control"></textarea>
+            </div>
+        </div>
+        <button type="button" id="generate-summaries-btn" class="btn btn-info mt-3">Gerar Resumos</button>
+    </form>
+    <audio id="audio-playback" controls></audio>
+</div>
+
+<script>
+    let chunks = [];
+    let recorder;
+    let startTime;
+    let durationInterval;
+    const startButton = document.getElementById('start-record-btn');
+    const stopButton = document.getElementById('stop-record-btn');
+    const saveButton = document.getElementById('save-consultation-btn');
+    const showFormButton = document.getElementById('show-form-btn');
+    const generateSummariesButton = document.getElementById('generate-summaries-btn');
+    const additionalFields = document.getElementById('additional-fields');
+    const audioPlayback = document.getElementById('audio-playback');
+    const durationDisplay = document.getElementById('duration');
+
+    function updateDuration() {
+        const now = new Date();
+        const duration = now - startTime;
+        const hours = String(Math.floor(duration / (1000 * 60 * 60))).padStart(2, '0');
+        const minutes = String(Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+        const seconds = String(Math.floor((duration % (1000 * 60)) / 1000)).padStart(2, '0');
+        durationDisplay.textContent = `${hours}:${minutes}:${seconds}`;
+    }
+
+    $(document).ready(function() {
+        startTime = new Date();
+        durationInterval = setInterval(updateDuration, 1000);
+
+        startButton.addEventListener('click', async () => {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            recorder = new MediaRecorder(stream);
+
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'audio/wav' });
+                chunks = [];
+                const audioURL = window.URL.createObjectURL(blob);
+                audioPlayback.src = audioURL;
+
+                Swal.fire({
+                    title: 'Transcrição em andamento...',
+                    text: 'Por favor, aguarde enquanto transcrevemos o áudio.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                const formData = new FormData();
+                formData.append('audio', blob);
+
+                fetch("{% url 'transcribe_audio' paciente.id %}", {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.querySelector('#transcricao').value = data.transcricao;
+                    Swal.close(); // Close the loading popup
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro',
+                        text: 'Ocorreu um erro durante a transcrição. Tente novamente.',
+                    });
+                });
+            };
+
+            recorder.start();
+            startButton.disabled = true;
+            stopButton.disabled = false;
+        });
+
+        stopButton.addEventListener('click', () => {
+            recorder.stop();
+            startButton.disabled = false;
+            stopButton.disabled = true;
+        });
+
+        saveButton.addEventListener('click', () => {
+            clearInterval(durationInterval);
+            const endTime = new Date();
+            const duration = endTime - startTime;
+            const hours = Math.floor(duration / (1000 * 60 * 60));
+            const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((duration % (1000 * 60)) / 1000);
+            const durationFormatted = `${hours}:${minutes}:${seconds}`;
+
+            const durationInput = document.createElement('input');
+            durationInput.type = 'hidden';
+            durationInput.name = 'duracao';
+            durationInput.value = durationFormatted;
+            document.querySelector('form').appendChild(durationInput);
+        });
+
+        showFormButton.addEventListener('click', () => {
+            additionalFields.style.display = additionalFields.style.display === 'none' ? 'block' : 'none';
+        });
+
+        generateSummariesButton.addEventListener('click', () => {
+            const transcricao = document.getElementById('transcricao').value;
+            if (!transcricao.trim()) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Aviso',
+                    text: 'Por favor, transcreva o áudio antes de gerar os resumos.',
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Gerando Resumos...',
+                text: 'Por favor, aguarde enquanto geramos os resumos para os campos do formulário.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            fetch("{% url 'gerar_resumos' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: new URLSearchParams({
+                    'transcricao': transcricao
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                Swal.close(); // Close the loading popup
+
+                document.getElementById('queixa_principal').value = data['Queixa Principal'] || '';
+                document.getElementById('historia_doenca_atual').value = data['História da Doença Atual'] || '';
+                document.getElementById('historia_patologica_pregressa').value = data['História Patológica Pregressa'] || '';
+                document.getElementById('cirurgias_realizadas').value = data['Cirurgias Realizadas'] || '';
+                document.getElementById('medicamentos_atualmente').value = data['Medicamentos e suplementos em uso atualmente'] || '';
+                document.getElementById('historia_fisiologica').value = data['História fisiológica'] || '';
+                document.getElementById('historia_familiar').value = data['História familiar'] || '';
+                document.getElementById('historia_social').value = data['História social'] || '';
+                document.getElementById('hipoteses_diagnosticas').value = data['Hipóteses diagnósticas'] || '';
+                document.getElementById('exame_fisico').value = data['Exame Físico'] || '';
+                document.getElementById('resultado_exames').value = data['Resultado de exames'] || '';
+                document.getElementById('conduta_terapeutica').value = data['Conduta terapêutica'] || '';
+                document.getElementById('exames_solicitados').value = data['Exames solicitados'] || '';
+                document.getElementById('medicamentos_prescritos').value = data['Medicamentos prescritos'] || '';
+                document.getElementById('observacoes_adicionais').value = data['Observações adicionais'] || '';
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: 'Ocorreu um erro ao gerar os resumos. Tente novamente.',
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,6 @@
+# python 3.10.0
+django
+assemblyai
+openai
+python-decouple
+hugchat
