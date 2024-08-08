@@ -5,7 +5,6 @@ from .models import Paciente, Consulta
 from .forms import ConsultaForm
 import requests
 import assemblyai as aai
-import openai
 from django.http import JsonResponse
 import json
 from decouple import AutoConfig
@@ -14,8 +13,6 @@ from hugchat.login import Login
 
 config = AutoConfig(search_path='.')
 
-# Configure sua chave de API
-openai.api_key = config('OPENAI_API_KEY')
 aai.settings.api_key = config('AA_API_KEY') 
 
 # Log in to huggingface and grant authorization to huggingchat
@@ -72,6 +69,7 @@ def gerar_resumos(request):
                     chave, valor = campo.split(':', 1)
                     resultado[chave.strip('-').strip('*').strip()] = valor.strip('*').strip()
             return JsonResponse(resultado)
+        chatbot.delete_all_conversations()
         return JsonResponse({'error': 'Erro ao gerar resumos'}, status=400)
     return JsonResponse({'error': 'Método não permitido'}, status=405)
 

@@ -22,10 +22,10 @@
         </div>
         <button type="button" id="start-record-btn" class="btn btn-success">Iniciar Gravação</button>
         <button type="button" id="stop-record-btn" class="btn btn-danger" disabled>Parar Gravação</button>
-        <button type="submit" id="save-consultation-btn" class="btn btn-primary">Salvar Consulta</button>
+        <button type="button" id="generate-summaries-btn" class="btn btn-info ml-2">Gerar Resumos</button>
 
-        <button type="button" id="show-form-btn" class="btn btn-secondary mt-3">Preencher Campos do Formulário</button>
-        <div id="additional-fields" class="mt-3" style="display: none;">
+        <div id="roteiro-consulta" class="mt-3">
+            <h3>Roteiro de consulta</h3>
             <div class="form-group">
                 <label for="queixa_principal">Queixa Principal</label>
                 <textarea id="queixa_principal" name="queixa_principal" class="form-control"></textarea>
@@ -87,7 +87,8 @@
                 <textarea id="observacoes_adicionais" name="observacoes_adicionais" class="form-control"></textarea>
             </div>
         </div>
-        <button type="button" id="generate-summaries-btn" class="btn btn-info mt-3">Gerar Resumos</button>
+
+        <button type="submit" id="save-consultation-btn" class="btn btn-primary mt-3">Salvar Consulta</button>
     </form>
     <audio id="audio-playback" controls></audio>
 </div>
@@ -100,9 +101,7 @@
     const startButton = document.getElementById('start-record-btn');
     const stopButton = document.getElementById('stop-record-btn');
     const saveButton = document.getElementById('save-consultation-btn');
-    const showFormButton = document.getElementById('show-form-btn');
     const generateSummariesButton = document.getElementById('generate-summaries-btn');
-    const additionalFields = document.getElementById('additional-fields');
     const audioPlayback = document.getElementById('audio-playback');
     const durationDisplay = document.getElementById('duration');
 
@@ -153,6 +152,7 @@
                 .then(data => {
                     document.querySelector('#transcricao').value = data.transcricao;
                     Swal.close(); // Close the loading popup
+                    generateSummariesButton.disabled = false; // Enable the "Gerar Resumos" button
                 })
                 .catch(error => {
                     Swal.fire({
@@ -185,13 +185,9 @@
 
             const durationInput = document.createElement('input');
             durationInput.type = 'hidden';
-            durationInput.name = 'duracao';
+            durationInput.name = 'duracao_consulta';
             durationInput.value = durationFormatted;
             document.querySelector('form').appendChild(durationInput);
-        });
-
-        showFormButton.addEventListener('click', () => {
-            additionalFields.style.display = additionalFields.style.display === 'none' ? 'block' : 'none';
         });
 
         generateSummariesButton.addEventListener('click', () => {
