@@ -3,3 +3,4 @@ django
 assemblyai
 python-decouple
 hugchat
+google-generativeai
