@@ -12,7 +12,8 @@ from decouple import AutoConfig
 # from hugchat.login import Login
 import google.generativeai as genai
 
-config = AutoConfig(search_path='.')
+config = AutoConfig(search_path='/home/karolinefarias23/karolinefarias23.pythonanywhere.com/')
+# config = AutoConfig(search_path='.')
 
 aai.settings.api_key = config('AA_API_KEY')
 
