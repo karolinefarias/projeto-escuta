@@ -43,16 +43,16 @@
                 <textarea id="cirurgias_realizadas" name="cirurgias_realizadas" class="form-control"></textarea>
             </div>
             <div class="form-group">
-                <label for="medicamentos_atualmente">Medicamentos e suplementos em uso atualmente</label>
-                <textarea id="medicamentos_atualmente" name="medicamentos_atualmente" class="form-control"></textarea>
+                <label for="medicamentos_suplementos">Medicamentos e suplementos em uso atualmente</label>
+                <textarea id="medicamentos_suplementos" name="medicamentos_suplementos" class="form-control"></textarea>
             </div>
             <div class="form-group">
                 <label for="historia_fisiologica">História fisiológica</label>
                 <textarea id="historia_fisiologica" name="historia_fisiologica" class="form-control"></textarea>
             </div>
             <div class="form-group">
-                <label for="historia_familiar">História familiar</label>
-                <textarea id="historia_familiar" name="historia_familiar" class="form-control"></textarea>
+                <label for="historia_familia">História familiar</label>
+                <textarea id="historia_familia" name="historia_familia" class="form-control"></textarea>
             </div>
             <div class="form-group">
                 <label for="historia_social">História social</label>
@@ -185,7 +185,7 @@
 
             const durationInput = document.createElement('input');
             durationInput.type = 'hidden';
-            durationInput.name = 'duracao_consulta';
+            durationInput.name = 'duracao';
             durationInput.value = durationFormatted;
             document.querySelector('form').appendChild(durationInput);
         });
@@ -228,9 +228,9 @@
                 document.getElementById('historia_doenca_atual').value = data['História da Doença Atual'] || '';
                 document.getElementById('historia_patologica_pregressa').value = data['História Patológica Pregressa'] || '';
                 document.getElementById('cirurgias_realizadas').value = data['Cirurgias Realizadas'] || '';
-                document.getElementById('medicamentos_atualmente').value = data['Medicamentos e suplementos em uso atualmente'] || '';
+                document.getElementById('medicamentos_suplementos').value = data['Medicamentos e suplementos em uso atualmente'] || '';
                 document.getElementById('historia_fisiologica').value = data['História fisiológica'] || '';
-                document.getElementById('historia_familiar').value = data['História familiar'] || '';
+                document.getElementById('historia_familia').value = data['História familiar'] || '';
                 document.getElementById('historia_social').value = data['História social'] || '';
                 document.getElementById('hipoteses_diagnosticas').value = data['Hipóteses diagnósticas'] || '';
                 document.getElementById('exame_fisico').value = data['Exame Físico'] || '';
