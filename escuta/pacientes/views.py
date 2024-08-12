@@ -8,19 +8,23 @@ import assemblyai as aai
 from django.http import JsonResponse
 import json
 from decouple import AutoConfig
-from hugchat import hugchat
-from hugchat.login import Login
+# from hugchat import hugchat
+# from hugchat.login import Login
+import google.generativeai as genai
 
 config = AutoConfig(search_path='.')
 
-aai.settings.api_key = config('AA_API_KEY') 
+aai.settings.api_key = config('AA_API_KEY')
+
+GEMINI_KEY = config('GEMINI_KEY')
+genai.configure(api_key=GEMINI_KEY)
 
 # Log in to huggingface and grant authorization to huggingchat
-EMAIL = config('EMAIL_HUGCHAT')
-PASSWD = config('PASSWD_HUGCHAT')
-cookie_path_dir = "../cookies/" # NOTE: trailing slash (/) is required to avoid errors
-sign = Login(EMAIL, PASSWD)
-cookies = sign.login(cookie_dir_path=cookie_path_dir, save_cookies=True)
+# EMAIL = config('EMAIL_HUGCHAT')
+# PASSWD = config('PASSWD_HUGCHAT')
+# cookie_path_dir = "../cookies/" # NOTE: trailing slash (/) is required to avoid errors
+# sign = Login(EMAIL, PASSWD)
+# cookies = sign.login(cookie_dir_path=cookie_path_dir, save_cookies=True)
 
 @csrf_exempt
 def gerar_resumos(request):
@@ -56,11 +60,13 @@ def gerar_resumos(request):
             #     temperature=0.5
             # )
             # Create your ChatBot
-            chatbot = hugchat.ChatBot(cookies=cookies.get_dict())  # or cookie_path="usercookies/<email>.json"
+            # chatbot = hugchat.ChatBot(cookies=cookies.get_dict())  # or cookie_path="usercookies/<email>.json"
 
-            message_result = chatbot.chat(prompt)
-            resumos = message_result.text.strip()
-            
+            # message_result = chatbot.chat(prompt)
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            response = model.generate_content(prompt)
+            resumos = response.text.strip()
+            print(resumos)
             # Separar os resumos em campos
             campos = resumos.split('\n')
             resultado = {}
@@ -69,7 +75,7 @@ def gerar_resumos(request):
                     chave, valor = campo.split(':', 1)
                     resultado[chave.strip('-').strip('*').strip()] = valor.strip('*').strip()
             return JsonResponse(resultado)
-        chatbot.delete_all_conversations()
+        # chatbot.delete_all_conversations()
         return JsonResponse({'error': 'Erro ao gerar resumos'}, status=400)
     return JsonResponse({'error': 'Método não permitido'}, status=405)
 
