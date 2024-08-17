@@ -1,6 +1,8 @@
 # Projeto Escuta
 
-Este é um projeto Django que utiliza várias APIs externas para fornecer funcionalidades avançadas.
+Esta é uma versão inicial do projeto ESCUTA (Escuta Clínica para Transcrição Estruturada). Este projeto visa possibilitar a realização de consultas com o mínimo de interações do médico com o computador.
+
+A aplicação permite gravar o áudio da consulta e transcrevê-lo. Em seguida a aplicação estrutura a transcrição da consulta em campos específicos para avaliação do médico.
 
 Projeto deployado: https://karolinefarias23.pythonanywhere.com/
 
