@@ -2,6 +2,8 @@
 
 Este é um projeto Django que utiliza várias APIs externas para fornecer funcionalidades avançadas.
 
+Projeto deployado: https://karolinefarias23.pythonanywhere.com/
+
 ## Requisitos
 
 - Python 3.10
